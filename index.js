@@ -1,6 +1,14 @@
-console.log("HELLO FROM BOT");
-console.log("NODE IS WORKING");
+const { Client, GatewayIntentBits } = require('discord.js');
 
-setInterval(() => {
-  console.log("Still running...");
-}, 30000);
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds]
+});
+
+client.once('ready', () => {
+  console.log(`${client.user.tag} is online!`);
+});
+
+client.login(process.env.TOKEN)
+  .catch(err => {
+    console.error('LOGIN ERROR:', err);
+  });
