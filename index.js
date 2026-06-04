@@ -1,5 +1,11 @@
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
-const fs = require('fs');
+const {
+    Client,
+    GatewayIntentBits,
+    EmbedBuilder,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    ActionRowBuilder
+} = require('discord.js');
 
 const client = new Client({
     intents: [
@@ -9,43 +15,73 @@ const client = new Client({
     ]
 });
 
-client.commands = new Collection();
-
-const commandFiles = fs
-    .readdirSync('./commands')
-    .filter(file => file.endsWith('.js'));
-
-for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    client.commands.set(command.data.name, command);
-}
-
 client.once('ready', () => {
     console.log(`${client.user.tag} is online!`);
 });
 
-client.on('interactionCreate', async interaction => {
+client.on('messageCreate', async message => {
 
-    if (interaction.isChatInputCommand()) {
+    if (message.author.bot) return;
 
-        const command = client.commands.get(interaction.commandName);
+    if (message.content === '!setup-ticket') {
 
-        if (!command) return;
+        const embed = new EmbedBuilder()
+            .setTitle('🎫 Support Center')
+            .setDescription(
+`Please select a category below to open a ticket.
 
-        try {
-            await command.execute(interaction);
-        } catch (error) {
-            console.error(error);
+🤝 Partnership
+🚨 Staff Report
+📝 Staff Application
+⛏ Minecraft Support
+🐛 Bug Report
+❓ General Support
+🔨 Ban Appeal
 
-            await interaction.reply({
-                content: 'There was an error while executing this command.',
-                ephemeral: true
-            });
-        }
+Our staff team will assist you as soon as possible.`
+            )
+            .setColor('#5865F2');
+
+        const menu = new StringSelectMenuBuilder()
+            .setCustomId('ticket_select')
+            .setPlaceholder('Select a ticket category')
+            .addOptions(
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Partnership')
+                    .setValue('partnership'),
+
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Staff Report')
+                    .setValue('staff-report'),
+
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Staff Application')
+                    .setValue('staff-application'),
+
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Minecraft Support')
+                    .setValue('minecraft-support'),
+
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Bug Report')
+                    .setValue('bug-report'),
+
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('General Support')
+                    .setValue('general-support'),
+
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Ban Appeal')
+                    .setValue('ban-appeal')
+            );
+
+        const row = new ActionRowBuilder().addComponents(menu);
+
+        await message.channel.send({
+            embeds: [embed],
+            components: [row]
+        });
     }
 });
 
-client.login(process.env.TOKEN)
-    .catch(err => {
-        console.error('LOGIN ERROR:', err);
-    });
+client.login(process.env.TOKEN);
