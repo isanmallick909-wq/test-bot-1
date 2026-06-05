@@ -7,6 +7,9 @@ const {
     ActionRowBuilder
 } = require('discord.js');
 
+const { activeTickets } = require('./ticketData');
+const config = require('./config');
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -82,6 +85,22 @@ Our staff team will assist you as soon as possible.`
             components: [row]
         });
     }
+});
+
+client.on('interactionCreate', async interaction => {
+
+    if (!interaction.isStringSelectMenu()) return;
+
+    if (interaction.customId !== 'ticket_select') return;
+
+    console.log(
+        `${interaction.user.tag} selected ${interaction.values[0]}`
+    );
+
+    await interaction.reply({
+        content: `You selected: ${interaction.values[0]}`,
+        ephemeral: true
+    });
 });
 
 client.login(process.env.TOKEN);
